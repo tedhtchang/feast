@@ -94,17 +94,24 @@ def get_repo_files(repo_root: Path) -> List[Path]:
 def parse_repo(repo_root: Path) -> ParsedRepo:
     """ Collect feature table definitions from feature repo """
     res = ParsedRepo(feature_tables=[], entities=[], feature_views=[])
-
+    fv_names = []
     for repo_file in get_repo_files(repo_root):
         module_path = py_path_to_module(repo_file, repo_root)
         module = importlib.import_module(module_path)
-
         for attr_name in dir(module):
             obj = getattr(module, attr_name)
             if isinstance(obj, FeatureTable):
                 res.feature_tables.append(obj)
             if isinstance(obj, FeatureView):
-                res.feature_views.append(obj)
+                # Make sure FeatureView name is unique
+                if obj.name in fv_names:
+                    raise ValueError(
+                        f"FeatureView {obj.name} is not unique. "
+                        f"Please rename the duplicated {obj.name} FeatureView name in {repo_file}."
+                    )
+                else:
+                    fv_names.append(obj.name)
+                    res.feature_views.append(obj)
             elif isinstance(obj, Entity):
                 res.entities.append(obj)
     return res

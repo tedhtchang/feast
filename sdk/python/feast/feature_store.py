@@ -223,12 +223,28 @@ class FeatureStore:
             objects = [objects]
         assert isinstance(objects, list)
 
+<<<<<<< HEAD
         views_to_update = [ob for ob in objects if isinstance(ob, FeatureView)]
         entities_to_update = [ob for ob in objects if isinstance(ob, Entity)]
 
         # Make inferences
         update_entities_with_inferred_types_from_feature_views(
             entities_to_update, views_to_update
+=======
+        views_to_update = []
+        view_name_list = []
+        for ob in objects:
+            if isinstance(ob, FeatureView):
+                # Verify FeatureView name is unique before adding to update list
+                if ob.name in view_name_list:
+                    raise ValueError(f"FeatureView {ob.name} is not unique.")
+                else:
+                    view_name_list.append(ob.name)
+                    views_to_update.append(ob)
+
+        entities_to_update = infer_entity_value_type_from_feature_views(
+            [ob for ob in objects if isinstance(ob, Entity)], views_to_update
+>>>>>>> 78085821... Make sure FeatureViews with same name can not be applied at the same time
         )
         update_data_sources_with_inferred_event_timestamp_col(
             [view.input for view in views_to_update]
