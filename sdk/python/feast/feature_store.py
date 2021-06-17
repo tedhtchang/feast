@@ -232,16 +232,17 @@ class FeatureStore:
             entities_to_update, views_to_update
 =======
         views_to_update = []
-        view_name_list = []
+        name_to_fv_dict = {}
         for ob in objects:
             if isinstance(ob, FeatureView):
-                # Verify FeatureView name is unique before adding to update list
-                if ob.name in view_name_list:
-                    raise ValueError(f"FeatureView {ob.name} is not unique.")
+                # check duplicate names in FeatureViews
+                if ob.name in name_to_fv_dict:
+                    name_to_fv_dict[ob.name] = ob
                 else:
-                    view_name_list.append(ob.name)
-                    views_to_update.append(ob)
-
+                    raise ValueError(
+                        f"More than one feature view with name {ob.name} found. Please ensure that all feature view names are unique."
+                    )
+        views_to_update = list(name_to_fv_dict.values())
         entities_to_update = infer_entity_value_type_from_feature_views(
             [ob for ob in objects if isinstance(ob, Entity)], views_to_update
 >>>>>>> 78085821... Make sure FeatureViews with same name can not be applied at the same time
