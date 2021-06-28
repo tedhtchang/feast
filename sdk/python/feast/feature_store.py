@@ -223,29 +223,13 @@ class FeatureStore:
             objects = [objects]
         assert isinstance(objects, list)
 
-<<<<<<< HEAD
         views_to_update = [ob for ob in objects if isinstance(ob, FeatureView)]
+        _validate_feature_views(views_to_update)
         entities_to_update = [ob for ob in objects if isinstance(ob, Entity)]
 
         # Make inferences
         update_entities_with_inferred_types_from_feature_views(
             entities_to_update, views_to_update
-=======
-        views_to_update = []
-        name_to_fv_dict = {}
-        for ob in objects:
-            if isinstance(ob, FeatureView):
-                # check duplicate names in FeatureViews
-                if ob.name in name_to_fv_dict:
-                    name_to_fv_dict[ob.name] = ob
-                else:
-                    raise ValueError(
-                        f"More than one feature view with name {ob.name} found. Please ensure that all feature view names are unique."
-                    )
-        views_to_update = list(name_to_fv_dict.values())
-        entities_to_update = infer_entity_value_type_from_feature_views(
-            [ob for ob in objects if isinstance(ob, Entity)], views_to_update
->>>>>>> 78085821... Make sure FeatureViews with same name can not be applied at the same time
         )
         update_data_sources_with_inferred_event_timestamp_col(
             [view.input for view in views_to_update]
@@ -697,3 +681,16 @@ def _print_materialization_log(
             f" to {Style.BRIGHT + Fore.GREEN}{end_date.replace(microsecond=0).astimezone()}{Style.RESET_ALL}"
             f" into the {Style.BRIGHT + Fore.GREEN}{online_store}{Style.RESET_ALL} online store.\n"
         )
+
+
+def _validate_feature_views(feature_views: List[FeatureView]):
+    """Check FeatureView names are unique"""
+    name_to_fv_dict = {}
+    for fv in feature_views:
+        # Verify FeatureViews have unique names
+        if fv.name in name_to_fv_dict:
+            raise ValueError(
+                f"More than one feature view with name {fv.name} found. Please ensure that all feature view names are unique."
+            )
+        else:
+            name_to_fv_dict[fv.name] = fv
